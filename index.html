@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veritext - Solusi Deteksi Plagiarisme & AI Terpercaya</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23064E3B'/%3E%3Cpath d='M16 18L28 46L40 18' fill='none' stroke='white' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M38 34L44 40L54 28' fill='none' stroke='%2310B981' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- PDF.js for extraction (Real PDF reading) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <!-- Mammoth.js for extraction (Real Word DOCX reading) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <!-- html2pdf.js for generating professional report PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        // Set PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            950: '#022c22', 
+                            primary: '#0F4C3A', 
+                            secondary: '#1C7C54',
+                            accent: '#F39C12'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fafbfa;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #15803d;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #022c22;
+        }
+
+        /* HIGHLY OPTIMIZED PRINT STYLES FOR NATIVE BROWSER SAVING (PDF FALLBACK) */
+        @media print {
+            /* Hide everything else on the landing page */
+            body * {
+                visibility: hidden;
+            }
+            /* Show only the printable report */
+            #printable-report, #printable-report * {
+                visibility: visible;
+            }
+            #printable-report {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 10mm !important;
+                box-shadow: none !important;
+                background: white !important;
+                color: black !important;
+            }
+            /* Expand the scrollable highlight text box fully so there are no scrollbars in print */
+            #highlighted-text-box {
+                max-height: none !important;
+                overflow: visible !important;
+                background: #f8fafc !important;
+                border: 1px solid #cbd5e1 !important;
+                padding: 15px !important;
+            }
+            /* Optimize page margins */
+            @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased overflow-x-hidden">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-emerald-100 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo & Brand -->
+                <div class="flex items-center gap-2 cursor-pointer" onclick="navigateTo('home')">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-brand-primary to-brand-secondary rounded-xl flex items-center justify-center text-white shadow-md shadow-emerald-950/20">
+                        <i class="fa-solid fa-shield-halved text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-extrabold tracking-tight text-brand-950">Veri<span class="text-brand-secondary">text</span></span>
+                        <p class="text-[9px] text-emerald-700 tracking-widest font-semibold uppercase -mt-1">Integritas Akademik</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation Menu -->
+                <nav class="hidden md:flex items-center gap-8">
+                    <a href="#home" onclick="navigateTo('home')" class="text-sm font-semibold text-brand-950 hover:text-brand-secondary transition-colors">Beranda</a>
+                    <a href="#about" onclick="navigateTo('about')" class="text-sm font-semibold text-slate-600 hover:text-brand-secondary transition-colors">Tentang Kami</a>
+                    <a href="#fitur" onclick="navigateTo('fitur')" class="text-sm font-semibold text-slate-600 hover:text-brand-secondary transition-colors">Fitur Unggulan</a>
+                    <a href="#contact" onclick="navigateTo('contact')" class="text-sm font-semibold text-slate-600 hover:text-brand-secondary transition-colors">Hubungi</a>
+                </nav>
+
+                <!-- Action Button -->
+                <div class="hidden md:flex items-center gap-4">
+                    <button onclick="scrollToChecker()" class="relative overflow-hidden group px-6 py-3 bg-brand-primary text-white text-sm font-bold rounded-xl transition-all duration-300 hover:bg-brand-secondary shadow-lg shadow-emerald-950/20 flex items-center gap-2">
+                        <span>Portal Turnitin</span>
+                        <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-brand-950 focus:outline-none p-2 rounded-lg hover:bg-emerald-50">
+                        <i class="fa-solid fa-bars text-xl" id="menu-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-emerald-100 px-4 pt-2 pb-6 space-y-3 transition-all duration-300">
+            <a href="#home" onclick="navigateTo('home')" class="block px-3 py-2 rounded-lg text-base font-semibold text-brand-950 hover:bg-emerald-50">Beranda</a>
+            <a href="#about" onclick="navigateTo('about')" class="block px-3 py-2 rounded-lg text-base font-semibold text-slate-600 hover:bg-emerald-50">Tentang Kami</a>
+            <a href="#fitur" onclick="navigateTo('fitur')" class="block px-3 py-2 rounded-lg text-base font-semibold text-slate-600 hover:bg-emerald-50">Fitur Unggulan</a>
+            <a href="#contact" onclick="navigateTo('contact')" class="block px-3 py-2 rounded-lg text-base font-semibold text-slate-600 hover:bg-emerald-50">Hubungi</a>
+            <button onclick="scrollToChecker(); toggleMobileMenu();" class="w-full text-center px-4 py-3 bg-brand-primary text-white font-bold rounded-xl hover:bg-brand-secondary transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Portal Turnitin</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN APP WRAPPER -->
+    <main class="pt-20">
+
+        <!-- HERO SECTION -->
+        <section id="home" class="relative overflow-hidden pt-12 pb-24 md:py-32 bg-gradient-to-b from-emerald-50/70 via-white to-transparent">
+            <!-- Background Decorative Blobs -->
+            <div class="absolute top-1/4 -left-64 w-96 h-96 bg-brand-200/40 rounded-full blur-3xl -z-10"></div>
+            <div class="absolute top-1/3 -right-64 w-96 h-96 bg-emerald-100/50 rounded-full blur-3xl -z-10"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    <!-- Text Side -->
+                    <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                        <div class="inline-flex items-center gap-2 bg-emerald-100/60 border border-emerald-200/80 px-4 py-1.5 rounded-full text-brand-800 text-xs font-semibold uppercase tracking-wider mx-auto lg:mx-0">
+                            <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                            Teknologi AI & Plagiarisme Riil & Akurat
+                        </div>
+                        <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-brand-950 tracking-tight leading-[1.1]">
+                            Verifikasi Keaslian Karya Tulis dengan <span class="text-brand-secondary underline decoration-wavy decoration-emerald-300">Veritext</span>
+                        </h1>
+                        <p class="text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 font-light leading-relaxed">
+                            Bandingkan karya ilmiah Anda dengan miliaran dokumen digital secara instan. Dilengkapi dengan <strong class="font-semibold text-brand-primary">Detektor AI vs Manusia</strong> dengan akurasi tinggi untuk menjamin orisinalitas riset dan tugas Anda.
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
+                            <button onclick="scrollToChecker()" class="px-8 py-4 bg-brand-primary text-white font-bold rounded-2xl shadow-xl shadow-emerald-950/25 hover:bg-brand-secondary transition-all hover:-translate-y-0.5 flex items-center justify-center gap-3">
+                                <i class="fa-solid fa-file-shield text-lg"></i>
+                                <span>Cek Dokumen Sekarang</span>
+                            </button>
+                            <a href="#fitur" class="px-8 py-4 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                                <span>Pelajari Fitur</span>
+                                <i class="fa-solid fa-circle-info"></i>
+                            </a>
+                        </div>
+
+                        <!-- Mini Stats -->
+                        <div class="grid grid-cols-3 gap-4 pt-8 border-t border-slate-100 max-w-md mx-auto lg:mx-0">
+                            <div>
+                                <p class="text-2xl sm:text-3xl font-extrabold text-brand-primary">99.8%</p>
+                                <p class="text-xs text-slate-500 font-medium">Akurasi Deteksi</p>
+                            </div>
+                            <div>
+                                <p class="text-2xl sm:text-3xl font-extrabold text-brand-primary">&lt; 15s</p>
+                                <p class="text-xs text-slate-500 font-medium">Waktu Analisis</p>
+                            </div>
+                            <div>
+                                <p class="text-2xl sm:text-3xl font-extrabold text-brand-primary">100%</p>
+                                <p class="text-xs text-slate-500 font-medium">Privasi Terjaga</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Dashboard Preview Side -->
+                    <div class="lg:col-span-5 relative mt-8 lg:mt-0">
+                        <div class="relative bg-white border border-emerald-100 rounded-3xl shadow-2xl p-6 md:p-8 backdrop-blur-sm transform hover:scale-[1.02] transition-transform duration-500">
+                            <!-- Badge Top -->
+                            <div class="absolute -top-4 -right-4 bg-amber-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt"></i> Baru: Detektor AI
+                            </div>
+
+                            <!-- Mock Turnitin Widget -->
+                            <div class="flex items-center justify-between pb-6 border-b border-slate-100">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-brand-primary">
+                                        <i class="fa-solid fa-chart-pie text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-slate-800">Skor Orisinalitas</h4>
+                                        <p class="text-xs text-slate-400">Analisis Laporan Terkini</p>
+                                    </div>
+                                </div>
+                                <span class="bg-brand-50 text-brand-800 px-3 py-1 rounded-full text-xs font-bold border border-emerald-100">Aktif</span>
+                            </div>
+
+                            <div class="py-8 space-y-6">
+                                <!-- Similarity Progress Bar -->
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-semibold text-slate-600">Kesamaan Teks (Plagiarisme)</span>
+                                        <span class="font-extrabold text-red-500">12%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden">
+                                        <div class="bg-red-500 h-full rounded-full" style="width: 12%"></div>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400">Batas toleransi umum: 20%</p>
+                                </div>
+
+                                <!-- AI Content Progress Bar -->
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-semibold text-slate-600">Konten Buatan AI</span>
+                                        <span class="font-extrabold text-amber-500">8%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-3.5 overflow-hidden">
+                                        <div class="bg-amber-500 h-full rounded-full" style="width: 8%"></div>
+                                    </div>
+                                    <p class="text-[11px] text-slate-400">Sangat aman untuk karya orisinal manusia</p>
+                                </div>
+                            </div>
+
+                            <!-- Small visual indicator -->
+                            <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex gap-3">
+                                <i class="fa-regular fa-circle-check text-brand-600 text-xl flex-shrink-0 mt-0.5"></i>
+                                <div class="text-xs">
+                                    <h5 class="font-bold text-brand-950">Dokumen Berintegritas Tinggi</h5>
+                                    <p class="text-slate-500 mt-1">Laporan menyatakan dokumen ini bebas dari plagiarisme masif dan dibuat secara otentik oleh Manusia.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PORTAL TURNITIN (UTAMA - FITUR CEK) -->
+        <section id="checker-section" class="py-20 bg-brand-950 text-white relative">
+            <div class="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-transparent to-brand-950/20 pointer-events-none"></div>
+            
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Header Section -->
+                <div class="text-center max-w-3xl mx-auto mb-12 space-y-4">
+                    <span class="text-brand-300 font-extrabold text-sm uppercase tracking-widest block"><i class="fa-solid fa-magnifying-glass-chart mr-1.5"></i> Panel Utama Veritext</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold">Portal Cek Turnitin & Detektor AI</h2>
+                    <p class="text-emerald-100/70 text-sm md:text-base leading-relaxed">
+                        Unggah file dokumen Anda atau langsung tempelkan teks untuk menganalisis kesamaan paragraf secara riil dan memeriksa persentase keterlibatan AI yang akurat .
+                    </p>
+                </div>
+
+                <!-- Input Checker Dashboard -->
+                <div class="bg-white text-slate-800 rounded-3xl shadow-2xl border border-emerald-800/20 overflow-hidden">
+                    <!-- Tab Selector -->
+                    <div class="flex border-b border-slate-100 bg-slate-50">
+                        <button id="tab-paste" onclick="switchCheckMode('paste')" class="flex-1 py-4 px-6 text-center text-sm font-bold border-b-2 border-brand-primary text-brand-primary flex items-center justify-center gap-2 transition-all">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span>Salin & Tempel Teks</span>
+                        </button>
+                        <button id="tab-upload" onclick="switchCheckMode('upload')" class="flex-1 py-4 px-6 text-center text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-brand-primary flex items-center justify-center gap-2 transition-all">
+                            <i class="fa-solid fa-file-arrow-up"></i>
+                            <span>Unggah Berkas File</span>
+                        </button>
+                    </div>
+
+                    <!-- Input Content -->
+                    <div class="p-6 md:p-8 space-y-6">
+                        <!-- Mode A: Paste Text Area -->
+                        <div id="mode-paste" class="space-y-4">
+                            <label for="checker-text" class="block text-sm font-bold text-slate-700">Teks Karya Tulis Anda:</label>
+                            <textarea id="checker-text" rows="10" placeholder="Ketik atau tempelkan artikel, esai, tugas, atau bab penelitian Anda di sini (Minimum 100 karakter untuk hasil yang akurat)..." class="w-full p-4 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:border-transparent text-sm leading-relaxed transition-all"></textarea>
+                            <div class="flex justify-between items-center text-xs text-slate-400">
+                                <span>Batas rekomendasi: 20.000 karakter</span>
+                                <span id="char-counter">0 Karakter | 0 Kata</span>
+                            </div>
+                        </div>
+
+                        <!-- Mode B: File Uploader -->
+                        <div id="mode-upload" class="hidden space-y-4">
+                            <label class="block text-sm font-bold text-slate-700">Unggah Berkas Dokumen:</label>
+                            <div class="border-2 border-dashed border-slate-300 hover:border-brand-primary rounded-2xl p-10 text-center cursor-pointer bg-slate-50/50 transition-colors group" id="drop-zone">
+                                <input type="file" id="file-input" class="hidden" accept=".pdf,.docx,.doc,.txt,.csv,.rtf">
+                                <div class="space-y-3" id="drop-zone-prompt">
+                                    <div class="w-16 h-16 bg-brand-100 rounded-full flex items-center justify-center text-brand-primary mx-auto group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="font-bold text-slate-700 text-sm">Tarik dan letakkan file Anda di sini</p>
+                                        <p class="text-xs text-slate-400">Atau cari dari komputer/ponsel Anda</p>
+                                    </div>
+                                    <p class="text-xs text-slate-400 max-w-xs mx-auto">Mendukung berkas: .PDF, .DOCX, .DOC, .TXT, .CSV (Maksimal 15MB)</p>
+                                </div>
+                                <div class="hidden space-y-2 text-center" id="file-info">
+                                    <i class="fa-regular fa-file-lines text-5xl text-brand-secondary"></i>
+                                    <p class="font-bold text-slate-800 text-sm" id="uploaded-file-name">file-nama-dokumen.docx</p>
+                                    <p class="text-xs text-slate-500" id="uploaded-file-size">1.2 MB</p>
+                                    <button onclick="clearUploadedFile(event)" class="text-xs font-bold text-red-500 hover:underline"><i class="fa-solid fa-trash-can mr-1"></i>Hapus File</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Scan Options -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-500 block">Database Pencocokan:</label>
+                                <div class="flex gap-4">
+                                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 font-semibold cursor-pointer">
+                                        <input type="checkbox" checked disabled class="accent-brand-primary rounded"> Jurnal Akademik & Artikel
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 font-semibold cursor-pointer">
+                                        <input type="checkbox" checked disabled class="accent-brand-primary rounded"> Halaman Internet Global
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs font-bold text-slate-500 block">Mesin Detektor AI:</label>
+                                <span class="inline-flex items-center gap-1 bg-emerald-50 text-brand-800 border border-emerald-100 px-2.5 py-1 rounded text-xs font-bold">
+                                    <i class="fa-solid fa-brain"></i> Veritext AI-V3 Engine (Filter Footnote & Referensi Aktif)
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- CTA Button -->
+                        <div class="pt-2">
+                            <button id="btn-scan" onclick="startScan()" class="w-full py-4 bg-brand-primary hover:bg-brand-secondary text-white font-extrabold text-base rounded-2xl shadow-xl shadow-brand-primary/20 transition-all flex items-center justify-center gap-3">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>Mulai Analisis Berkas & Teks</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROGRESS PEMINDAIAN (REAL-TIME SIMULATION) -->
+                <div id="scan-progress-container" class="hidden mt-8 bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <h4 class="font-bold text-lg flex items-center gap-2 text-white">
+                                <i class="fa-solid fa-spinner animate-spin text-brand-300"></i>
+                                <span id="progress-heading">Sedang Membaca & Mengekstrak Dokumen Anda...</span>
+                            </h4>
+                            <p class="text-xs text-slate-400" id="progress-status">Menghubungkan ke server repositori Turnitin...</p>
+                        </div>
+                        <span class="text-3xl font-extrabold text-brand-300" id="progress-percentage">0%</span>
+                    </div>
+
+                    <!-- Progress Bar wrapper -->
+                    <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden">
+                        <div id="progress-bar-fill" class="bg-gradient-to-r from-brand-500 to-brand-300 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-slate-400">
+                        <div class="flex items-center gap-2 bg-slate-800/50 p-3 rounded-xl border border-slate-800">
+                            <i class="fa-solid fa-filter text-brand-300"></i>
+                            <span>Memisahkan Footnote & Referensi</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-800/50 p-3 rounded-xl border border-slate-800">
+                            <i class="fa-solid fa-brain text-brand-300"></i>
+                            <span>Analisis Pola Sintaksis AI Paragraf</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-800/50 p-3 rounded-xl border border-slate-800">
+                            <i class="fa-solid fa-shield-check text-brand-300"></i>
+                            <span>Verifikasi Sidik Jari Dokumen</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HASIL LAPORAN TURNITIN & AI -->
+                <div id="results-container" class="hidden mt-12 bg-white text-slate-800 rounded-3xl shadow-2xl border border-emerald-100 overflow-hidden">
+                    
+                    <!-- Laporan Printable Area Start -->
+                    <div id="printable-report" class="p-6 md:p-10 space-y-8 bg-white text-slate-800">
+                        
+                        <!-- Header Laporan -->
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b-2 border-slate-100">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center text-white font-bold text-xs">
+                                        VT
+                                    </div>
+                                    <span class="text-xl font-extrabold tracking-tight text-brand-950">Laporan Resmi Veri<span class="text-brand-secondary">text</span></span>
+                                </div>
+                                <p class="text-xs text-slate-400 font-medium">ID Laporan: <span id="report-id" class="text-slate-600 font-mono">VT-948201-2026</span> | Tanggal Analisis: <span id="report-date" class="text-slate-600">22 Juni 2026</span></p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="bg-red-50 text-red-700 border border-red-100 px-3 py-1.5 rounded-full text-xs font-bold" id="badge-plag-status">Aman</span>
+                                <span class="bg-emerald-50 text-brand-800 border border-emerald-100 px-3 py-1.5 rounded-full text-xs font-bold" id="badge-ai-status">100% Manusia</span>
+                            </div>
+                        </div>
+
+                        <!-- Metadata Dokumen -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-100 text-xs">
+                            <div class="space-y-1">
+                                <span class="text-slate-400 block font-bold">NAMA DOKUMEN / BERKAS</span>
+                                <span class="text-slate-800 font-bold block truncate" id="meta-doc-name">Naskah_Artikel_Ilmiah.docx</span>
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-slate-400 block font-bold">JUMLAH KATA / KARAKTER</span>
+                                <span class="text-slate-800 font-bold block" id="meta-doc-words">1,240 Kata / 8,490 Karakter</span>
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-slate-400 block font-bold">MESIN PEMERIKSA</span>
+                                <span class="text-slate-800 font-bold block text-brand-primary"><i class="fa-solid fa-circle-check mr-1"></i>Veritext Turnitin V4.0</span>
+                            </div>
+                        </div>
+
+                        <!-- Statistik Dashboard (Charts) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            
+                            <!-- Box Plagiarisme -->
+                            <div class="border border-slate-100 bg-white p-6 rounded-2xl shadow-sm space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h5 class="font-bold text-slate-800 text-sm uppercase tracking-wide flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                                        <span>Indeks Kesamaan (Plagiarisme)</span>
+                                    </h5>
+                                    <span class="text-3xl font-extrabold text-red-500" id="score-plag-percentage">15%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-3">
+                                    <div id="bar-plag-fill" class="bg-red-500 h-full rounded-full transition-all duration-500" style="width: 15%"></div>
+                                </div>
+                                <!-- Visual Chart Grid Ringan -->
+                                <div class="pt-2">
+                                    <span class="text-xs font-semibold text-slate-500">Rincian Sumber Terindikasi Serupa:</span>
+                                    <ul class="mt-2 space-y-2 text-xs" id="plag-sources-list">
+                                        <li class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border-l-4 border-red-400">
+                                            <span class="font-medium text-slate-600 truncate max-w-[200px]">1. ejournal.universitas.ac.id/riset-teknologi</span>
+                                            <span class="font-bold text-red-500">8%</span>
+                                        </li>
+                                        <li class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border-l-4 border-amber-400">
+                                            <span class="font-medium text-slate-600 truncate max-w-[200px]">2. wikipedia.org/wiki/Sistem_Keamanan</span>
+                                            <span class="font-bold text-amber-500">4%</span>
+                                        </li>
+                                        <li class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border-l-4 border-indigo-400">
+                                            <span class="font-medium text-slate-600 truncate max-w-[200px]">3. Sumber Publikasi Lainnya</span>
+                                            <span class="font-bold text-indigo-500">3%</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Box Detektor AI (Hanya Membaca Paragraf Murni) -->
+                            <div class="border border-slate-100 bg-white p-6 rounded-2xl shadow-sm space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h5 class="font-bold text-slate-800 text-sm uppercase tracking-wide flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-brand-primary"></span>
+                                        <span>Deteksi Keaslian Konten (AI vs Manusia)</span>
+                                    </h5>
+                                    <span class="text-3xl font-extrabold text-brand-primary" id="score-ai-percentage">92%</span>
+                                </div>
+                                
+                                <!-- Segmented Bar -->
+                                <div class="flex w-full h-4 rounded-full overflow-hidden text-[9px] font-bold text-white text-center">
+                                    <div id="bar-human-fill" class="bg-brand-primary h-full flex items-center justify-center" style="width: 92%">Manusia (92%)</div>
+                                    <div id="bar-ai-fill" class="bg-amber-500 h-full flex items-center justify-center" style="width: 8%">AI (8%)</div>
+                                </div>
+
+                                <div class="pt-2 space-y-3">
+                                    <span class="text-xs font-semibold text-slate-500">Analisis Gaya Bahasa & Paragraf:</span>
+                                    
+                                    <div class="grid grid-cols-2 gap-2 text-xs">
+                                        <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
+                                            <span class="text-slate-400 block text-[10px] font-bold">PERLEKSITAS TEKS</span>
+                                            <span class="font-bold text-slate-700 text-sm" id="meta-perplexity">Sangat Tinggi</span>
+                                            <p class="text-[10px] text-slate-400 mt-1">Struktur kosakata dinamis dan bervariasi.</p>
+                                        </div>
+                                        <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
+                                            <span class="text-slate-400 block text-[10px] font-bold">BURSTINESS KALIMAT</span>
+                                            <span class="font-bold text-slate-700 text-sm" id="meta-burstiness">Tinggi (Sangat Alami)</span>
+                                            <p class="text-[10px] text-slate-400 mt-1">Panjang kalimat tidak monoton.</p>
+                                        </div>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 italic bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                        *Sistem otomatis mengabaikan bagian daftar pustaka, rujukan url, sitasi kurung siku, dan penomoran catatan kaki untuk mengeliminasi bias deteksi AI.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sorotan Teks (Text Highlighting) -->
+                        <div class="space-y-3">
+                            <h5 class="font-bold text-slate-800 text-sm uppercase tracking-wide flex items-center gap-2">
+                                <i class="fa-solid fa-highlighter text-slate-400"></i>
+                                <span>Hasil Sorotan Naskah Dokumen</span>
+                            </h5>
+                            <p class="text-xs text-slate-400">Legenda Sorotan: <span class="bg-red-100 text-red-800 px-1.5 py-0.5 rounded font-bold mx-1">Merah = Terindikasi Plagiarisme</span> | <span class="bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">Kuning = Paragraf Suspek AI</span></p>
+                            
+                            <div class="border border-slate-100 rounded-2xl p-5 bg-slate-50/50 text-sm leading-relaxed text-slate-700 max-h-72 overflow-y-auto" id="highlighted-text-box">
+                                <!-- Dynamic highlighted content gets inserted here -->
+                            </div>
+                        </div>
+
+                        <!-- Footer Legal & Stamp -->
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-6 pt-6 border-t border-slate-100 text-xs text-slate-400">
+                            <p class="text-center sm:text-left">Dibuat otomatis oleh sistem Veritext. Seluruh data dienkripsi dengan standar AES-256 untuk memastikan perlindungan hak cipta penulis.</p>
+                            <div class="flex items-center gap-2 flex-shrink-0 bg-emerald-50 border border-emerald-100 p-2.5 rounded-xl">
+                                <i class="fa-solid fa-signature text-brand-primary text-lg"></i>
+                                <div>
+                                    <p class="font-extrabold text-brand-950 text-[10px] uppercase">VERIFIED SYSTEM</p>
+                                    <p class="text-[9px]">Veritext Security Standard</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- Laporan Printable Area End -->
+
+                    <!-- Actions Bottom -->
+                    <div class="bg-slate-50 px-6 py-5 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <p class="text-xs text-slate-500">Anda dapat menyimpan laporan ini secara permanen ke perangkat Anda dalam format PDF.</p>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <button onclick="scrollToChecker()" class="flex-1 sm:flex-initial px-5 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold rounded-xl text-xs transition-colors">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Periksa Dokumen Lain
+                            </button>
+                            <button onclick="downloadPDFReport()" class="flex-1 sm:flex-initial px-6 py-2.5 bg-brand-primary hover:bg-brand-secondary text-white font-extrabold rounded-xl text-xs shadow-lg shadow-emerald-950/15 transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <span>Unduh Laporan PDF</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about" class="py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+                    
+                    <!-- Left Column (Visual Card Grid) -->
+                    <div class="lg:col-span-5 grid grid-cols-2 gap-4">
+                        <div class="space-y-4">
+                            <div class="bg-brand-50 p-6 rounded-3xl border border-emerald-100">
+                                <div class="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center text-white mb-4">
+                                    <i class="fa-solid fa-database text-lg"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-sm">Database Luas</h4>
+                                <p class="text-xs text-slate-500 mt-1">Sinkronisasi dengan jutaan paper & repositori jurnal.</p>
+                            </div>
+                            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-white mb-4">
+                                    <i class="fa-solid fa-microchip text-lg"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-sm">Pemindaian AI</h4>
+                                <p class="text-xs text-slate-500 mt-1">Mendeteksi model LLM terbaru termasuk GPT-4 dan Claude.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4 pt-8">
+                            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                <div class="w-10 h-10 bg-brand-secondary rounded-xl flex items-center justify-center text-white mb-4">
+                                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-sm">Kecepatan Tinggi</h4>
+                                <p class="text-xs text-slate-500 mt-1">Dapatkan statistik orisinalitas dalam hitungan detik.</p>
+                            </div>
+                            <div class="bg-brand-950 text-white p-6 rounded-3xl">
+                                <h3 class="text-3xl font-extrabold text-brand-300">10M+</h3>
+                                <p class="text-xs text-emerald-100/60 mt-1">Total naskah ilmiah yang berhasil diperiksa setiap tahunnya.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column (Texts) -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <span class="text-brand-primary font-bold text-sm uppercase tracking-wider block">Siapa Kami</span>
+                        <h2 class="text-3xl sm:text-4xl font-extrabold text-brand-950 tracking-tight leading-[1.2]">
+                            Menjaga Orisinalitas & Mendorong Integritas Publikasi Akademik
+                        </h2>
+                        <p class="text-slate-600 text-base leading-relaxed font-light">
+                            Veritext didirikan oleh gabungan praktisi teknologi dan akademisi yang melihat tantangan besar orisinalitas teks di era digital dan kecerdasan buatan. Kami percaya bahwa setiap karya tulis harus dihargai berdasarkan orisinalitasnya.
+                        </p>
+                        <p class="text-slate-600 text-base leading-relaxed font-light">
+                            Dengan mengintegrasikan mesin pendeteksi plagiat berkelas industri berskala Turnitin dan sistem pemindaian cerdas bahasa buatan AI, kami memberikan jaminan bahwa teks Anda akan dinilai secara adil, komprehensif, dan terlindungi privasinya.
+                        </p>
+
+                        <div class="pt-4 flex flex-col sm:flex-row gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-brand-primary text-xs font-bold">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span class="text-sm font-semibold text-slate-700">Tanpa Simpan di Repositori Publik</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-brand-primary text-xs font-bold">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                                <span class="text-sm font-semibold text-slate-700">100% Sesuai Standar Turnitin</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- FEATURES SECTION -->
+        <section id="fitur" class="py-24 bg-gradient-to-b from-white via-slate-50 to-white border-t border-b border-slate-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <!-- Section Head -->
+                <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
+                    <span class="text-brand-primary font-bold text-sm uppercase tracking-wider block">Kenapa Memilih Veritext</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-brand-950">Fitur Canggih Pengaman Tulisan Anda</h2>
+                    <p class="text-slate-500 text-sm sm:text-base">Seluruh perangkat yang Anda butuhkan untuk memeriksa integritas dokumen akademik dalam satu dasbor cerdas.</p>
+                </div>
+
+                <!-- Features Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    
+                    <!-- Fitur 1 -->
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                        <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-brand-primary mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-copy text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Detektor Plagiarisme Masif</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Membandingkan silang teks Anda dengan dokumen publik, rilis berita, makalah konferensi, serta artikel jurnal ilmiah di seluruh penjuru web.
+                        </p>
+                    </div>
+
+                    <!-- Fitur 2 -->
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                        <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-brain text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Deteksi Mesin AI Super</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Membedakan secara akurat antara tulisan yang dibuat alami oleh otak manusia dengan tulisan sintetik yang di-generate dari asisten AI modern.
+                        </p>
+                    </div>
+
+                    <!-- Fitur 3 -->
+                    <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                        <div class="w-14 h-14 bg-brand-secondary rounded-2xl flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-pdf text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Unduh Laporan PDF Resmi</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">
+                            Simpan hasil laporan cek Turnitin Anda dalam format PDF berstandar tinggi lengkap dengan skor persentase, sumber orisinal, serta grafis rincian.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT SECTION -->
+        <section id="contact" class="py-24 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-gradient-to-tr from-brand-primary to-brand-secondary rounded-[40px] text-white p-8 md:p-16 relative overflow-hidden shadow-2xl shadow-emerald-950/20">
+                    <!-- Decor inside box -->
+                    <div class="absolute -bottom-32 -left-32 w-80 h-80 bg-brand-700/30 rounded-full blur-3xl"></div>
+                    <div class="absolute -top-32 -right-32 w-80 h-80 bg-brand-500/20 rounded-full blur-3xl"></div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 relative z-10">
+                        <div class="lg:col-span-6 space-y-6">
+                            <span class="bg-emerald-800/60 border border-emerald-700 px-4 py-1.5 rounded-full text-brand-200 text-xs font-semibold uppercase tracking-wider inline-block">Hubungi Layanan</span>
+                            <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">Ada Pertanyaan? Tim Dukungan Kami Siap Membantu</h2>
+                            <p class="text-emerald-100/80 font-light leading-relaxed">
+                                Butuh integrasi API kustom, akun institusi sekolah/universitas, atau mengalami masalah dengan proses pembayaran premium kami? Hubungi tim sekarang.
+                            </p>
+                            <div class="space-y-4 pt-4 text-sm">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center text-brand-300">
+                                        <i class="fa-regular fa-envelope text-lg"></i>
+                                    </div>
+                                    <span class="font-medium">support@veritext-Progammer AR</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center text-brand-300">
+                                        <i class="fa-solid fa-phone text-lg"></i>
+                                    </div>
+                                    <span class="font-medium">+620111011282</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Contact Form inside card -->
+                        <div class="lg:col-span-6 bg-white/10 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/10 space-y-4">
+                            <h4 class="font-bold text-lg">Kirim Pesan Instan</h4>
+                            <div class="space-y-3">
+                                <input type="text" id="contact-name" placeholder="Nama Lengkap" class="w-full p-3.5 bg-white/5 border border-white/10 rounded-xl text-sm placeholder-white/50 text-white focus:outline-none focus:ring-2 focus:ring-white/40 transition-all">
+                                <input type="email" id="contact-email" placeholder="Alamat Surel (Email)" class="w-full p-3.5 bg-white/5 border border-white/10 rounded-xl text-sm placeholder-white/50 text-white focus:outline-none focus:ring-2 focus:ring-white/40 transition-all">
+                                <textarea id="contact-msg" rows="3" placeholder="Pesan Anda..." class="w-full p-3.5 bg-white/5 border border-white/10 rounded-xl text-sm placeholder-white/50 text-white focus:outline-none focus:ring-2 focus:ring-white/40 transition-all"></textarea>
+                                <button onclick="sendContactMsg()" class="w-full py-3.5 bg-white text-brand-primary hover:bg-brand-50 font-bold rounded-xl text-sm transition-colors shadow-lg">Kirim Pesan Sekarang</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-brand-950 text-white border-t border-emerald-950/50 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Branding -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center text-white">
+                            <i class="fa-solid fa-shield-halved text-sm"></i>
+                        </div>
+                        <span class="text-xl font-extrabold tracking-tight">Veri<span class="text-brand-secondary">text</span></span>
+                    </div>
+                    <p class="text-xs text-emerald-100/60 leading-relaxed font-light">
+                        Portal perlindungan orisinalitas naskah tulisan dan deteksi kecerdasan buatan berbasis standar Turnitin tingkat lanjut.
+                    </p>
+                </div>
+
+                <!-- Navigasi Cepat -->
+                <div class="space-y-4">
+                    <h5 class="text-sm font-bold text-brand-300 tracking-wider uppercase">Tautan Penting</h5>
+                    <ul class="space-y-2 text-xs text-emerald-100/60">
+                        <li><a href="#home" class="hover:text-brand-300 transition-colors">Beranda</a></li>
+                        <li><a href="#about" class="hover:text-brand-300 transition-colors">Tentang Kami</a></li>
+                        <li><a href="#fitur" class="hover:text-brand-300 transition-colors">Fitur Unggulan</a></li>
+                        <li><a href="#contact" class="hover:text-brand-300 transition-colors">Hubungi Tim</a></li>
+                    </ul>
+                </div>
+
+                <!-- Kebijakan -->
+                <div class="space-y-4">
+                    <h5 class="text-sm font-bold text-brand-300 tracking-wider uppercase">Legalitas & Privasi</h5>
+                    <ul class="space-y-2 text-xs text-emerald-100/60">
+                        <li><a href="#" class="hover:text-brand-300 transition-colors">Ketentuan Layanan</a></li>
+                        <li><a href="#" class="hover:text-brand-300 transition-colors">Kebijakan Privasi</a></li>
+                        <li><a href="#" class="hover:text-brand-300 transition-colors">Penafian (Disclaimer)</a></li>
+                        <li><a href="#" class="hover:text-brand-300 transition-colors">SLA Agreement</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="space-y-4">
+                    <h5 class="text-sm font-bold text-brand-300 tracking-wider uppercase">Dapatkan Berita</h5>
+                    <p class="text-xs text-emerald-100/60 leading-relaxed font-light">Berlangganan artikel tips kepenulisan akademik bebas plagiasi.</p>
+                    <div class="flex gap-2">
+                        <input type="email" placeholder="Email Anda" class="bg-emerald-900/30 border border-emerald-800 text-xs rounded-lg p-2.5 w-full text-white placeholder-emerald-100/40 focus:outline-none">
+                        <button onclick="alertNotification('Berhasil mendaftar newsletter!', 'success')" class="bg-brand-primary hover:bg-brand-secondary p-2.5 rounded-lg text-xs font-bold transition-colors"><i class="fa-regular fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Copyright -->
+            <div class="border-t border-emerald-900/50 mt-12 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] text-emerald-100/40">
+                <p>&copy; 2026 Veritext - Progammer AR. Seluruh Hak Cipta Dilindungi Undang-Undang.</p>
+                <p>Gunakan lah secara bijak dan benar - Progammer AR</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GLOBAL CLIENT-SIDE CUSTOM TOAST NOTIFICATION -->
+    <div id="toast-notif" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl flex items-center gap-3 max-w-sm">
+        <div id="toast-icon" class="w-8 h-8 rounded-full flex items-center justify-center text-sm"></div>
+        <div>
+            <h5 id="toast-title" class="font-bold text-xs">Pemberitahuan</h5>
+            <p id="toast-desc" class="text-[11px] text-slate-300 mt-0.5">Deskripsi info di sini...</p>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+     <script src="main.js"></script>
+</body>
+</html>
