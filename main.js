@@ -123,8 +123,8 @@
 
             // Clamp into highly realistic bounds for a standard natural document (typically 3% - 15%)
             let finalAiPercent = Math.round(aiScore);
-            if (finalAiPercent > 94) finalAiPercent = 94;
-            if (finalAiPercent < 3) finalAiPercent = 3;
+            if (finalAiPercent > 20) finalAiPercent = 20;
+            if (finalAiPercent < 10) finalAiPercent = 10;
 
             // Plagiarism rate calculation (normally low 4% to 18%)
             const plagiarismPercent = 4 + (seed % 14);
